@@ -42,9 +42,15 @@ This is a hands-free, voice-controlled AI chatbot for managing Gmail. It allows 
    - Click `Create Credentials` > `OAuth Client ID`.
    - Select `Web application`, add `http://localhost:5000` as an authorized redirect URI.
    - Download `credentials.json`.
-
 **Move `credentials.json` into the project directory.**
 
+6. **Add Your Email as a Test User:**
+   - Go to Google Cloud Console: [Google Cloud Console](https://console.cloud.google.com/)
+   - Open `API & Services` → `OAuth Consent Screen`
+   - Scroll down to "Test Users"
+   - Add your email like `(okg5166@gmail.com)`.
+   - Click `Save & Continue`.
+**Now test user email is added succesfully and you can authencate and login easily with that email and use the bot...**
 ---
 
 ### **2️⃣ Install Dependencies**
@@ -66,7 +72,7 @@ python app.py
 ## 🎤 Usage Guide
 
 ### **Read Emails**
-- Say: _"Read my emails."_
+- Say: _"Read my top 2 emails."_
 - The bot will fetch and read the latest emails.
 
 ### **Send an Email**
@@ -78,24 +84,36 @@ python app.py
 ---
 
 ## 🖼️ Screenshots of working application
+
+### **Providing command for reading top 4 commands...**
 ![Providing command for reading top 4 commands...](assets/img1.jpg)
+
+### **Fetched and audible Emails...**
 ![Fetched and audible Emails...](assets/img2.jpg)
+
+### **Providing speech command to write an email...**
 ![Providing speech command to write an email...](assets/img3.jpg)
+
+### **Providing Recipient email address...**
 ![Providing Recipient email address...](assets/img4.jpg)
+
+### **Adding subject and message/content and verifying whole composed email content...**
 ![Adding subject and message/content and verifying whole composed email content...](assets/img5.jpg)
+
+### **Providing last 'send' command for verification of sending.**
 ![Providing last 'send' command for verification of sending.](assets/img6.jpg)
 
 ### **Google API Setup**
-![Google API Setup](assets/google_api_setup.png)
+![Google API Setup](assets/gmail-api-enable.jpg)
 
-### **Voice Command in Action**
-![Voice Command Demo](assets/voice_command_demo.png)
+### **Add test email user for accessing Gmail through bot under APIs and services > Audience > Add users**
+![Google API Setup](assets/add-test-user.jpg)
 
-_Replace these images with actual screenshots from your setup._
+### **And follow the above process mentioned Setup Instruction for smoothly making application working...**
 
 ---
 
-## 🔧 Troubleshooting
+## 🔧 Troubleshooting for any other errors...
 
 **1. Getting authentication errors?**  
 - Ensure `credentials.json` is correctly placed in the project directory.
