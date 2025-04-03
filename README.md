@@ -107,9 +107,9 @@ python app.py
 ![Google API Setup](assets/gmail-api-enable.jpg)
 
 ### **Add test email user for accessing Gmail through bot under APIs and services > Audience > Add users**
-![Google API Setup](assets/add-test-user.jpg)
+![Test email adding](assets/add-test-email.jpg)
 
-### **And follow the above process mentioned Setup Instruction for smoothly making application working...**
+### **And follow the above steps mentioned in `Setup Instruction` for smoothly making application working...**
 
 ---
 
