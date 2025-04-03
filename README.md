@@ -53,19 +53,6 @@ This is a hands-free, voice-controlled AI chatbot for managing Gmail. It allows 
 pip install -r requirements.txt
 ```
 
-**`requirements.txt` (Include this in your project root):**
-```txt
-Flask
-Flask-CORS
-google-auth-oauthlib
-google-auth-httplib2
-google-auth
-requests
-SpeechRecognition
-pyttsx3
-pywin32
-```
-
 ---
 
 ### **3️⃣ Run the Application**
@@ -85,12 +72,18 @@ python app.py
 ### **Send an Email**
 - Say: _"Send an email to [recipient] with subject [subject] and message [body]."_
 
-### **Exit the Chatbot**
-- Say: _"Exit."_
+### **Sending email with final verification from Bot**
+- Say: _"Send or send email or anything to send your composed email."_
 
 ---
 
-## 🖼️ Screenshots
+## 🖼️ Screenshots of working application
+![Providing command for reading top 4 commands...](assets/img1.jpg)
+![Fetched and audible Emails...](assets/img2.jpg)
+![Providing speech command to write an email...](assets/img3.jpg)
+![Providing Recipient email address...](assets/img4.jpg)
+![Adding subject and message/content and verifying whole composed email content...](assets/img5.jpg)
+![Providing last 'send' command for verification of sending.](assets/img6.jpg)
 
 ### **Google API Setup**
 ![Google API Setup](assets/google_api_setup.png)
