@@ -128,10 +128,5 @@ python app.py
 ---
 
 ## 🎯 Future Improvements
-- **Improve NLP** for better voice command understanding.
+- **Improve NLP** for better voice command understanding and also composing emails with AI enabled formats and guidance.
 - **Add more email management features** (archiving, deleting emails).
-
----
-
-## 📝 License
-This project is licensed under the MIT License.
