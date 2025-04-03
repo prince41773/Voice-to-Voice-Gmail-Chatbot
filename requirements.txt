@@ -1,0 +1,9 @@
+Flask
+Flask-CORS
+google-auth-oauthlib
+google-auth-httplib2
+google-auth
+requests
+SpeechRecognition
+pyttsx3
+pywin32

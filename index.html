@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Email Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Voice Email Chatbot</h1>
+
+    <!-- Manual Text Input -->
+    <div id="manual-input">
+        <input type="text" id="text-input" placeholder="Type your command here...">
+        <button onclick="sendCommand()">Send</button>
+    </div>
+
+    <!-- Voice Control -->
+    <div id="voice-control">
+        <button id="listen-btn">🎤 Start Listening</button>
+        <button id="stop-btn" style="display:none;">🛑 Stop Listening</button>
+    </div>
+
+    <!-- Listening Status -->
+    <p id="listening-status" style="color: red; font-weight: bold; display: none;">Listening...</p>
+
+    <!-- Response Box -->
+    <div id="response-box">
+        <h3>Response:</h3>
+        <p id="response-text"></p>
+    </div>
+
+    <!-- Email Preview -->
+    <div id="email-preview">
+        <h3>Email Preview:</h3>
+        <p><strong>To:</strong> <span id="email-to">N/A</span></p>
+        <p><strong>Subject:</strong> <span id="email-subject">N/A</span></p>
+        <p><strong>Message:</strong> <span id="email-body">N/A</span></p>
+    </div>
+
+    <script>
+        let keepListening = false; // Variable to control listening state
+
+        function sendCommand() {
+            let textInput = document.getElementById("text-input").value;
+            if (textInput.trim() === "") return;
+            processCommand(textInput);
+        }
+        
+        document.getElementById("listen-btn").addEventListener("click", function() {
+            keepListening = true;
+            document.getElementById("listening-status").style.display = "block"; // Show "Listening..."
+            document.getElementById("listen-btn").style.display = "none";
+            document.getElementById("stop-btn").style.display = "inline";
+            startListening();
+        });
+        
+        document.getElementById("stop-btn").addEventListener("click", function() {
+            keepListening = false; // Stop listening when the button is clicked
+            document.getElementById("listening-status").style.display = "none";
+            document.getElementById("listen-btn").style.display = "inline";
+            document.getElementById("stop-btn").style.display = "none";
+        });
+        
+        function startListening() {
+            if (!keepListening) return;  // Exit immediately if stop listening is triggered
+        
+            fetch("/voice-command", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                processResponse(data);
+        
+                // Set a timeout to listen again ONLY if keepListening is still true
+                if (keepListening) {
+                    setTimeout(startListening, 1000);  // Continue listening only if it's active
+                } else {
+                    console.log("Stopped Listening");
+                    document.getElementById("listening-status").style.display = "none"; // Reset status
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("listening-status").style.display = "none";
+            });
+        }
+        
+        function processCommand(inputText) {
+            document.getElementById("listening-status").style.display = "none";
+            fetch("/voice-command", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: inputText })
+            })
+            .then(response => response.json())
+            .then(data => processResponse(data));
+        }
+        
+        function processResponse(data) {
+            document.getElementById("response-text").innerText = data.response;
+            document.getElementById("text-input").value = data.recognized_text || ""; // Show recognized text
+        
+            document.getElementById("email-to").innerText = data.pending_email?.recipient || "N/A";
+            document.getElementById("email-subject").innerText = data.pending_email?.subject || "N/A";
+            document.getElementById("email-body").innerText = data.pending_email?.body || "N/A";
+        
+            // Ensure buttons reset after response
+            document.getElementById("listening-status").style.display = "none";
+            document.getElementById("listen-btn").style.display = "inline";
+            document.getElementById("stop-btn").style.display = "none";
+        }        
+    </script>
+</body>
+</html>
