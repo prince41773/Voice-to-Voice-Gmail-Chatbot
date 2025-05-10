@@ -27,15 +27,18 @@
         <div id="response-box">
             <h3>Response:</h3>
             <p id="response-text"></p>
+            <div id="email-buttons"></div> <!-- ADDED for email selection buttons -->
         </div>
 
         <div id="email-preview">
             <h3>Email Preview:</h3>
-            <p><strong>To:</strong> <span id="email-to">N/A</span></p>
-            <p><strong>Subject:</strong> <span id="email-subject">N/A</span></p>
-            <p><strong>Message:</strong> <span id="email-body">N/A</span></p>
+            <p><strong>To:</strong> <input type="text" id="email-to" placeholder="Recipient Email"></p>
+            <p><strong>Subject:</strong> <input type="text" id="email-subject" placeholder="Email Subject"></p>
+            <p><strong>Message:</strong><br>
+                <textarea id="email-body" rows="5" style="width: 100%;" placeholder="Email Body"></textarea>
+            </p>
         </div>
-
+        
         <div id="emails-container">
             <h3>📩 Emails:</h3>
             <div id="email-list"></div>
@@ -44,42 +47,44 @@
         <button id="read-aloud-btn" style="display: none;">Read Emails Aloud</button>
     </div>
 
-    <script>
-        let keepListening = false;
+    <!-- Only JavaScript section updated, rest same -->
+<script>
+    let keepListening = false;
 
-        function sendCommand() {
-            let textInput = document.getElementById("text-input").value;
-            if (textInput.trim() === "") return;
-    
-            document.getElementById("response-text").innerText = "Processing your command...";
-            document.getElementById("email-list").innerHTML = ""; // Clear previous emails
-    
-            processCommand(textInput);
-        }
-    
-        document.getElementById("listen-btn").addEventListener("click", function () {
-            keepListening = true;
-            document.getElementById("listening-status").style.display = "block";
-            document.getElementById("listen-btn").style.display = "none";
-            document.getElementById("stop-btn").style.display = "inline";
-            startListening();
-        });
-    
-        document.getElementById("stop-btn").addEventListener("click", function () {
-            keepListening = false;
-            document.getElementById("listening-status").style.display = "none";
-            document.getElementById("listen-btn").style.display = "inline";
-            document.getElementById("stop-btn").style.display = "none";
-        });
-    
-        function startListening() {
-            if (!keepListening) return;
-    
-            fetch("/voice-command", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
-            })
+    function sendCommand() {
+        let textInput = document.getElementById("text-input").value;
+        if (textInput.trim() === "") return;
+
+        document.getElementById("response-text").innerText = "Processing your command...";
+        document.getElementById("email-list").innerHTML = ""; // clear previous emails
+        document.getElementById("email-buttons").innerHTML = ""; // clear previous email selection buttons
+
+        processCommand(textInput);
+    }
+
+    document.getElementById("listen-btn").addEventListener("click", function () {
+        keepListening = true;
+        document.getElementById("listening-status").style.display = "block";
+        document.getElementById("listen-btn").style.display = "none";
+        document.getElementById("stop-btn").style.display = "inline";
+        startListening();
+    });
+
+    document.getElementById("stop-btn").addEventListener("click", function () {
+        keepListening = false;
+        document.getElementById("listening-status").style.display = "none";
+        document.getElementById("listen-btn").style.display = "inline";
+        document.getElementById("stop-btn").style.display = "none";
+    });
+
+    function startListening() {
+        if (!keepListening) return;
+
+        fetch("/voice-command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+        })
             .then(response => response.json())
             .then(data => {
                 processResponse(data);
@@ -88,59 +93,135 @@
             .catch(error => {
                 console.error("❌ Error:", error);
             });
-        }
-    
-        function processCommand(inputText) {
-            fetch("/voice-command", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: inputText })
-            })
+    }
+
+    function processCommand(inputText) {
+        fetch("/voice-command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: inputText })
+        })
             .then(response => response.json())
             .then(data => processResponse(data));
+    }
+
+    function processResponse(data) {
+        document.getElementById("response-text").innerText = "";
+        document.getElementById("email-buttons").innerHTML = "";
+
+        // --- 1. Always set pending email details first ---
+        if (data.pending_email) {
+            document.getElementById("email-to").value = data.pending_email.recipient || "";
+            document.getElementById("email-subject").value = data.pending_email.subject || "";
+            document.getElementById("email-body").value = data.pending_email.body || "";
         }
-    
-        function processResponse(data) {
-            document.getElementById("response-text").innerText = data.response;
-    
-            if (data.pending_email) {
-                document.getElementById("email-to").innerText = data.pending_email.recipient || "N/A";
-                document.getElementById("email-subject").innerText = data.pending_email.subject || "N/A";
-                document.getElementById("email-body").innerText = data.pending_email.body || "N/A";
-            }
-    
-            // Update email list if emails are received
-            if (data.emails && data.emails.length > 0) {
-                let emailListContainer = document.getElementById("email-list");
-                emailListContainer.innerHTML = ""; // Clear previous emails
-    
-                data.emails.forEach(email => {
-                    let emailItem = document.createElement("div");
-                    emailItem.classList.add("email-item");
-                    emailItem.innerHTML = `<p>${email}</p>`;
-                    emailListContainer.appendChild(emailItem);
-                });
-    
-                // Show "Read Emails Aloud" button
-                document.getElementById("read-aloud-btn").style.display = "inline";
-            } else {
-                document.getElementById("read-aloud-btn").style.display = "none";
-            }
-        }
-    
-        // Function to read emails aloud
-        document.getElementById("read-aloud-btn").addEventListener("click", function () {
-            let emailTexts = Array.from(document.querySelectorAll("#email-list .email-item p"))
-                .map(p => p.innerText).join(". ");
-            fetch("/voice-command", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: emailTexts })
+
+        // --- 2. Handle if multiple emails for selecting recipient ---
+        if (data.emails && data.emails.length > 0) {
+            document.getElementById("response-text").innerHTML = "<b>Select a recipient email:</b><br><br>";
+            data.emails.forEach(email => {
+                let btn = document.createElement("button");
+                btn.innerText = email;
+                btn.style.margin = "5px";
+                btn.onclick = () => {
+                    document.getElementById("email-to").value = email;
+                    document.getElementById("response-text").innerText = `Selected: ${email}`;
+                    document.getElementById("email-buttons").innerHTML = "";
+
+                    // 💥 NEW: Update pending_email.recipient on server
+                    updatePendingRecipient(email);
+                };
+                document.getElementById("email-buttons").appendChild(btn);
             });
+            return; // Important
+        }
+
+        // --- 3. Handle normal response text ---
+        if (data.response) {
+            if (data.response.includes("@gmail.com") || data.response.includes("@")) {
+                let emailList = extractEmails(data.response);
+                if (emailList.length > 0) {
+                    document.getElementById("response-text").innerHTML = "<b>Select an Email to Send:</b><br><br>";
+                    emailList.forEach(email => {
+                        let btn = document.createElement("button");
+                        btn.innerText = email;
+                        btn.style.margin = "5px";
+                        btn.onclick = () => autoSendEmailCommand(email);
+                        document.getElementById("email-buttons").appendChild(btn);
+                    });
+                    return;
+                }
+            }
+            document.getElementById("response-text").innerText = data.response;
+        }
+
+        // --- 4. Show inbox emails ---
+        if (data.inbox_emails && data.inbox_emails.length > 0) {
+            let emailListContainer = document.getElementById("email-list");
+            emailListContainer.innerHTML = "";
+
+            data.inbox_emails.forEach(email => {
+                let emailItem = document.createElement("div");
+                emailItem.classList.add("email-item");
+                emailItem.innerHTML = `<p>${email}</p>`;
+                emailListContainer.appendChild(emailItem);
+            });
+
+            document.getElementById("read-aloud-btn").style.display = "inline";
+        } else {
+            document.getElementById("read-aloud-btn").style.display = "none";
+        }
+    }
+
+    function updatePendingRecipient(selectedEmail) {
+        fetch("/update-pending-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ recipient: selectedEmail })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("✅ Recipient updated successfully:", data);
+        })
+        .catch(error => {
+            console.error("❌ Error updating recipient:", error);
         });
-    </script>
+    }
+
+    function extractEmails(text) {
+        let emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+        return text.match(emailRegex) || [];
+    }
+
+    function autoSendEmailCommand(emailAddress) {
+        fetch("/voice-command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: `select ${emailAddress}` })
+        })
+            .then(response => response.json())
+            .then(data => {
+                processResponse(data);
+            })
+            .catch(error => {
+                console.error("❌ Error sending email command:", error);
+            });
+    }
+
+    document.getElementById("read-aloud-btn").addEventListener("click", function () {
+        let emailTexts = Array.from(document.querySelectorAll("#email-list .email-item p"))
+            .map(p => p.innerText).join(". ");
+        fetch("/voice-command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: emailTexts })
+        });
+    });
+</script>
+
 
     <style>
+        /* (your existing CSS kept same) */
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
@@ -181,12 +262,13 @@
             margin-top: 20px;
         }
 
-        input {
-            padding: 15px;
-            width: 60%;
+        input,
+        textarea {
+            padding: 10px;
+            width: 80%;
             border-radius: 5px;
             border: 1px solid #ccc;
-            font-size:15px;
+            font-size: 15px;
         }
 
         #response-box,
