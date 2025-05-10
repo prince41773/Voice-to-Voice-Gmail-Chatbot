@@ -19,7 +19,7 @@ def authenticate_gmail():
     """Authenticate and return the Gmail API service."""
     creds = None
     token_path = "token.json"
-    credentials_path = "credentials.json"
+    credentials_path = r"D:\contribution\voice-email-chatbot-fin-copy\voice-email-chatbot\credentials.json"
 
     if os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path)
@@ -29,7 +29,7 @@ def authenticate_gmail():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(credentials_path, SCOPES)
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_local_server(port=8080)
 
         with open(token_path, "w") as token_file:
             token_file.write(creds.to_json())
@@ -47,7 +47,7 @@ def create_email(to, subject, body):
 def send_email(service, message):
     """Encodes and sends the email."""
     try:
-        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()  # Ensure MIME object
+        raw = base64.urlsafe_b64encode(message.as_bytes()).decode() 
         service.users().messages().send(userId="me", body={"raw": raw}).execute()
         return "✅ Email sent successfully!"
     except Exception as e:
@@ -97,3 +97,17 @@ def read_emails_aloud(emails):
         engine.say(email)
 
     engine.runAndWait()
+
+def get_email_address(service, query):
+    results = service.users().messages().list(userId='me', q=query).execute()
+    messages = results.get('messages', [])
+
+    email_addresses = []
+    for msg in messages:
+        msg_data = service.users().messages().get(userId='me', id=msg['id']).execute()
+        headers = msg_data['payload']['headers']
+        for header in headers:
+            if header['name'] in ['From', 'To']:
+                email_addresses.append(header['value'])
+
+    return set(email_addresses)
