@@ -216,9 +216,9 @@ def voice_command():
                 current_stage = "INITIAL"
                 Thread(target=speak, args=("Email sent successfully!",)).start()
                 return jsonify({"response": "Email sent successfully!", "pending_email": pending_email})
-
-    Thread(target=speak, args=("I did not understand the command.",)).start()
-    return jsonify({"response": "Command not recognized.", "pending_email": pending_email})
+    if intent == "UNKNOWN":
+        Thread(target=speak, args=("I did not understand the command.",)).start()
+        return jsonify({"response": "Command not recognized.", "pending_email": pending_email})
 
 if __name__ == "__main__":
     app.run(debug=True)
